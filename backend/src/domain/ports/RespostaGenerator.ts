@@ -1,4 +1,5 @@
 import type { Atendimento } from "../entities/Atendimento.js";
+import type { TrechoConhecimento } from "../entities/Conhecimento.js";
 import type { Mensagem } from "../entities/Mensagem.js";
 
 /**
@@ -11,6 +12,8 @@ import type { Mensagem } from "../entities/Mensagem.js";
 export interface EntradaAtendimento {
   pergunta: string;
   historico: readonly Mensagem[];
+  /** Trechos recuperados da base de conhecimento (RAG) para fundamentar a resposta. */
+  conhecimento?: readonly TrechoConhecimento[];
 }
 
 export interface RespostaGenerator {

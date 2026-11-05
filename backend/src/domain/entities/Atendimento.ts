@@ -1,10 +1,16 @@
 /**
  * Tipos do atendimento estruturado.
  *
- * A IA devolve um `Atendimento` (mensagem em linguagem natural + produtos
- * citados). O backend enriquece cada produto com a comparação de preços entre
- * as lojas parceiras fictícias antes de responder ao cliente.
+ * A IA devolve um `Atendimento`: a mensagem, os produtos citados, se o assunto
+ * é de tecnologia (controle de escopo) e as fontes da web (quando a busca do
+ * Google é usada). O backend enriquece cada produto com a comparação de preços.
  */
+
+/** Fonte consultada na web (Google Search grounding). */
+export interface FonteWeb {
+  titulo: string;
+  url: string;
+}
 
 /** Produto citado pela IA (com preço de referência em BRL). */
 export interface ProdutoSugerido {
@@ -29,14 +35,20 @@ export interface ProdutoComPrecos extends ProdutoSugerido {
   precos: PrecoLoja[];
 }
 
-/** Atendimento completo devolvido pela API. */
-export interface RespostaAtendimento {
-  mensagem: string;
-  produtos: ProdutoComPrecos[];
-}
-
 /** Atendimento cru devolvido pelo provedor de IA (sem enriquecimento). */
 export interface Atendimento {
   mensagem: string;
   produtos: ProdutoSugerido[];
+  assuntoDeTecnologia: boolean;
+  fontesWeb: FonteWeb[];
+}
+
+/** Atendimento completo devolvido pela API. */
+export interface RespostaAtendimento {
+  mensagem: string;
+  produtos: ProdutoComPrecos[];
+  foraDeEscopo: boolean;
+  fontesWeb: FonteWeb[];
+  /** Títulos dos trechos da base de conhecimento (RAG) usados na resposta. */
+  conhecimento: string[];
 }

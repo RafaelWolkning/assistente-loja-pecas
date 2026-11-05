@@ -7,6 +7,10 @@ export interface Config {
   versao: string;
   tentativasIA: number;
   atrasoBaseMs: number;
+  usarBuscaWeb: boolean;
+  ragHabilitado: boolean;
+  ragTopK: number;
+  embedModelo: string;
 }
 
 export const VERSAO_PADRAO = "1.0.0";
@@ -14,6 +18,8 @@ export const MODELO_PADRAO = "gemini-3.5-flash-lite";
 export const PORTA_PADRAO = 3000;
 export const TENTATIVAS_PADRAO = 3;
 export const ATRASO_BASE_PADRAO_MS = 800;
+export const RAG_TOP_K_PADRAO = 4;
+export const EMBED_MODELO_PADRAO = "gemini-embedding-001";
 
 /**
  * Carrega e valida a configuração a partir do ambiente.
@@ -65,7 +71,18 @@ export function carregarConfig(
     versao: env.APP_VERSION?.trim() || VERSAO_PADRAO,
     tentativasIA,
     atrasoBaseMs,
+    usarBuscaWeb: booleano(env.USAR_BUSCA_WEB, true),
+    ragHabilitado: booleano(env.RAG_HABILITADO, true),
+    ragTopK: inteiroPositivo(env.RAG_TOP_K, RAG_TOP_K_PADRAO, "RAG_TOP_K"),
+    embedModelo: env.EMBED_MODEL?.trim() || EMBED_MODELO_PADRAO,
   };
+}
+
+function booleano(valor: string | undefined, padrao: boolean): boolean {
+  if (valor === undefined || valor.trim() === "") {
+    return padrao;
+  }
+  return /^(1|true|sim|yes|on)$/i.test(valor.trim());
 }
 
 function inteiroPositivo(

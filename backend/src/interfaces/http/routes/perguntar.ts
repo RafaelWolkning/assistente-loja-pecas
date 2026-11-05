@@ -35,6 +35,19 @@ const esquemaPerguntar = {
       type: "object",
       properties: {
         mensagem: { type: "string" },
+        foraDeEscopo: { type: "boolean" },
+        conhecimento: { type: "array", items: { type: "string" } },
+        fontesWeb: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              titulo: { type: "string" },
+              url: { type: "string" },
+            },
+            required: ["titulo", "url"],
+          },
+        },
         produtos: {
           type: "array",
           items: {
@@ -61,7 +74,7 @@ const esquemaPerguntar = {
           },
         },
       },
-      required: ["mensagem", "produtos"],
+      required: ["mensagem", "produtos", "foraDeEscopo", "fontesWeb", "conhecimento"],
     },
   },
 } as const;
