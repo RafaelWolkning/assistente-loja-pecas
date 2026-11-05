@@ -3,6 +3,7 @@ import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } fro
 import {
   obterSaude,
   perguntar,
+  type FonteWeb,
   type Mensagem,
   type ProdutoComPrecos,
 } from "./api/client.js";
@@ -14,6 +15,9 @@ interface ItemChat extends Mensagem {
   id: number;
   animar?: boolean;
   produtos?: ProdutoComPrecos[];
+  fontesWeb?: FonteWeb[];
+  conhecimento?: string[];
+  foraDeEscopo?: boolean;
 }
 
 const MENSAGEM_INICIAL: ItemChat = {
@@ -112,7 +116,10 @@ export function App() {
       setCarregando(true);
 
       try {
-        const { mensagem, produtos } = await perguntar(pergunta, historico);
+        const { mensagem, produtos, foraDeEscopo, fontesWeb, conhecimento } = await perguntar(
+          pergunta,
+          historico,
+        );
         setMensagens((atuais) => [
           ...atuais,
           {
@@ -120,6 +127,9 @@ export function App() {
             papel: "atendente",
             conteudo: mensagem,
             produtos,
+            fontesWeb,
+            conhecimento,
+            foraDeEscopo,
             animar: !reduzirMovimento,
           },
         ]);

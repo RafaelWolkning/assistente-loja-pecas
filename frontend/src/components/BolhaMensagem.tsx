@@ -1,12 +1,15 @@
 import { Fragment, type ReactNode, useEffect, useRef, useState } from "react";
 
-import type { Papel, ProdutoComPrecos } from "../api/client.js";
+import type { FonteWeb, Papel, ProdutoComPrecos } from "../api/client.js";
 import { CartaoProduto } from "./CartaoProduto.js";
 
 interface MensagemExibida {
   papel: Papel;
   conteudo: string;
   produtos?: ProdutoComPrecos[];
+  fontesWeb?: FonteWeb[];
+  conhecimento?: string[];
+  foraDeEscopo?: boolean;
 }
 
 interface Props {
@@ -56,8 +59,8 @@ function Paragrafos({ texto, cursor }: { texto: string; cursor: boolean }) {
 
 /**
  * Uma bolha de mensagem. Quando `animar` é verdadeiro, o texto é "datilografado"
- * letra a letra (efeito de fala do mascote); os produtos e a tabela de preços
- * aparecem ao terminar. O texto completo permanece acessível a leitores de tela.
+ * letra a letra (efeito de fala do mascote); os cards de produto, as fontes da
+ * web e a base de conhecimento aparecem ao terminar.
  */
 export function BolhaMensagem({ mensagem, animar = false, aoTerminarFala }: Props) {
   const [visivel, setVisivel] = useState(animar ? "" : mensagem.conteudo);
@@ -92,21 +95,54 @@ export function BolhaMensagem({ mensagem, animar = false, aoTerminarFala }: Prop
   const ehCliente = mensagem.papel === "cliente";
   const digitando = animar && visivel.length < mensagem.conteudo.length;
   const exibido = digitando ? visivel : mensagem.conteudo;
-  const temProdutos = !ehCliente && !digitando && (mensagem.produtos?.length ?? 0) > 0;
+
+  const produtos = mensagem.produtos ?? [];
+  const fontes = mensagem.fontesWeb ?? [];
+  const conhecimento = mensagem.conhecimento ?? [];
+  const temExtras = !ehCliente && !digitando && (produtos.length > 0 || fontes.length > 0 || conhecimento.length > 0);
 
   return (
-    <div className={`bolha ${ehCliente ? "bolha--cliente" : "bolha--atendente"} ${temProdutos ? "bolha--rica" : ""}`}>
+    <div
+      className={`bolha ${ehCliente ? "bolha--cliente" : "bolha--atendente"} ${
+        produtos.length > 0 ? "bolha--rica" : ""
+      } ${mensagem.foraDeEscopo ? "bolha--fora" : ""}`}
+    >
       <span className="bolha__autor">{ehCliente ? "Você" : "Byte"}</span>
 
       <div className="bolha__corpo">
         <Paragrafos texto={exibido} cursor={digitando} />
       </div>
 
-      {temProdutos && (
-        <div className="produtos">
-          {mensagem.produtos?.map((produto, indice) => (
-            <CartaoProduto key={`${produto.nome}-${indice}`} produto={produto} />
-          ))}
+      {temExtras && (
+        <div className="extras">
+          {conhecimento.length > 0 && (
+            <p className="conhecimento">
+              Baseado na base de conhecimento: <strong>{conhecimento.join(" · ")}</strong>
+            </p>
+          )}
+
+          {produtos.length > 0 && (
+            <div className="produtos">
+              {produtos.map((produto, indice) => (
+                <CartaoProduto key={`${produto.nome}-${indice}`} produto={produto} />
+              ))}
+            </div>
+          )}
+
+          {fontes.length > 0 && (
+            <div className="fontes">
+              <span className="fontes__titulo">Fontes consultadas na web</span>
+              <ul className="fontes__lista">
+                {fontes.map((fonte, indice) => (
+                  <li key={indice}>
+                    <a href={fonte.url} target="_blank" rel="noopener noreferrer">
+                      {fonte.titulo}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       )}
     </div>

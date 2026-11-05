@@ -38,9 +38,17 @@ export interface ProdutoComPrecos {
   precos: PrecoLoja[];
 }
 
+export interface FonteWeb {
+  titulo: string;
+  url: string;
+}
+
 export interface RespostaAtendimento {
   mensagem: string;
   produtos: ProdutoComPrecos[];
+  foraDeEscopo: boolean;
+  fontesWeb: FonteWeb[];
+  conhecimento: string[];
 }
 
 /** URL base da API (Render). Sem barra no final. */
@@ -90,6 +98,9 @@ interface RespostaBruta {
   mensagem?: unknown;
   resposta?: unknown;
   produtos?: unknown;
+  foraDeEscopo?: unknown;
+  fontesWeb?: unknown;
+  conhecimento?: unknown;
 }
 
 export async function perguntar(
@@ -109,9 +120,13 @@ export async function perguntar(
         ? dados.resposta
         : "";
 
-  const produtos = Array.isArray(dados.produtos)
-    ? (dados.produtos as ProdutoComPrecos[])
-    : [];
-
-  return { mensagem, produtos };
+  return {
+    mensagem,
+    produtos: Array.isArray(dados.produtos) ? (dados.produtos as ProdutoComPrecos[]) : [],
+    foraDeEscopo: dados.foraDeEscopo === true,
+    fontesWeb: Array.isArray(dados.fontesWeb) ? (dados.fontesWeb as FonteWeb[]) : [],
+    conhecimento: Array.isArray(dados.conhecimento)
+      ? (dados.conhecimento.filter((item) => typeof item === "string") as string[])
+      : [],
+  };
 }
