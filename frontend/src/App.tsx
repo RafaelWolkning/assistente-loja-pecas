@@ -1,21 +1,35 @@
-import { type FormEvent, useCallback, useEffect, useRef, useState } from "react";
+import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { obterSaude, perguntar, type Mensagem } from "./api/client.js";
 import { BolhaMensagem } from "./components/BolhaMensagem.js";
+import { Mascote, type EstadoMascote } from "./components/Mascote.js";
 import { Sugestoes } from "./components/Sugestoes.js";
 
-const MENSAGEM_INICIAL: Mensagem = {
+interface ItemChat extends Mensagem {
+  id: number;
+  animar?: boolean;
+}
+
+const MENSAGEM_INICIAL: ItemChat = {
+  id: 0,
   papel: "atendente",
   conteudo:
-    "Olá! Eu sou o Byte, atendente da BytePeças. Posso ajudar você a escolher peças de computador, tirar dúvidas de compatibilidade e comparar produtos. O que você procura?",
+    "Oi! Eu sou o Byte, atendente da BytePeças. Posso te ajudar a montar um PC, comparar peças e tirar dúvidas de compatibilidade. O que você procura?",
 };
 
 const SUGESTOES: readonly string[] = [
-  "Quero montar um PC gamer para 1440p até R$ 8000. O que você recomenda?",
+  "Quero montar um PC gamer para 1440p até R$ 8000.",
   "Qual processador combina com uma RTX 4070 Super?",
   "Vocês têm SSD NVMe de 1TB? Qual o preço?",
   "Preciso de uma fonte para um Ryzen 7 com uma RX 7800 XT.",
 ];
+
+const LEGENDA: Record<EstadoMascote, string> = {
+  ocioso: "Estou online e pronto para ajudar.",
+  pensando: "Deixa eu pensar…",
+  falando: "Olha só o que encontrei:",
+  erro: "Não consegui responder agora.",
+};
 
 type StatusServidor = "verificando" | "online" | "offline";
 
@@ -26,12 +40,26 @@ const ROTULO_STATUS: Record<StatusServidor, string> = {
 };
 
 export function App() {
-  const [mensagens, setMensagens] = useState<Mensagem[]>([MENSAGEM_INICIAL]);
+  const reduzirMovimento = useMemo(
+    () =>
+      typeof window !== "undefined" && typeof window.matchMedia === "function"
+        ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        : false,
+    [],
+  );
+
+  const [mensagens, setMensagens] = useState<ItemChat[]>(() => [
+    { ...MENSAGEM_INICIAL, animar: !reduzirMovimento },
+  ]);
   const [entrada, setEntrada] = useState("");
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
+  const [estadoMascote, setEstadoMascote] = useState<EstadoMascote>(
+    reduzirMovimento ? "ocioso" : "falando",
+  );
   const [status, setStatus] = useState<StatusServidor>("verificando");
   const [detalheStatus, setDetalheStatus] = useState("");
+  const proximoId = useRef(1);
   const fimDaLista = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -51,31 +79,52 @@ export function App() {
   }, []);
 
   useEffect(() => {
-    fimDaLista.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-  }, [mensagens, carregando, erro]);
+    fimDaLista.current?.scrollIntoView({ behavior: reduzirMovimento ? "auto" : "smooth", block: "end" });
+  }, [mensagens, carregando, erro, reduzirMovimento]);
+
+  const aoTerminarFala = useCallback(() => {
+    setEstadoMascote("ocioso");
+    setMensagens((atuais) => atuais.map((item) => (item.animar ? { ...item, animar: false } : item)));
+  }, []);
 
   const enviar = useCallback(
     async (texto: string) => {
       const pergunta = texto.trim();
       if (pergunta.length === 0 || carregando) return;
 
-      const historico = mensagens.filter((mensagem) => mensagem !== MENSAGEM_INICIAL);
+      const historico: Mensagem[] = mensagens
+        .filter((item) => item.id !== MENSAGEM_INICIAL.id)
+        .map((item) => ({ papel: item.papel, conteudo: item.conteudo }));
 
       setErro(null);
       setEntrada("");
-      setMensagens((atual) => [...atual, { papel: "cliente", conteudo: pergunta }]);
+      setEstadoMascote("pensando");
+      setMensagens((atuais) => [
+        ...atuais,
+        { id: proximoId.current++, papel: "cliente", conteudo: pergunta },
+      ]);
       setCarregando(true);
 
       try {
         const { resposta } = await perguntar(pergunta, historico);
-        setMensagens((atual) => [...atual, { papel: "atendente", conteudo: resposta }]);
+        setMensagens((atuais) => [
+          ...atuais,
+          {
+            id: proximoId.current++,
+            papel: "atendente",
+            conteudo: resposta,
+            animar: !reduzirMovimento,
+          },
+        ]);
+        setEstadoMascote(reduzirMovimento ? "ocioso" : "falando");
       } catch (falha) {
         setErro(falha instanceof Error ? falha.message : "Erro inesperado.");
+        setEstadoMascote("erro");
       } finally {
         setCarregando(false);
       }
     },
-    [carregando, mensagens],
+    [carregando, mensagens, reduzirMovimento],
   );
 
   function aoSubmeter(evento: FormEvent<HTMLFormElement>) {
@@ -85,15 +134,16 @@ export function App() {
 
   return (
     <div className="app">
-      <header className="topo">
-        <div className="marca">
-          <span className="logo" aria-hidden="true">
-            BP
-          </span>
-          <div>
-            <h1>BytePeças</h1>
-            <p>Atendimento com IA · peças de computador</p>
-          </div>
+      <header className="topo entrar" style={{ animationDelay: "0.05s" }}>
+        <div className="mascote-wrap">
+          <Mascote estado={estadoMascote} />
+        </div>
+        <div className="topo__texto">
+          <p className="saudacao">Olá! Eu sou o Byte</p>
+          <h1>BytePeças</h1>
+          <p className="legenda" key={estadoMascote}>
+            {LEGENDA[estadoMascote]}
+          </p>
         </div>
         <div className={`status status--${status}`} title={detalheStatus}>
           <span className="ponto" aria-hidden="true" />
@@ -101,9 +151,14 @@ export function App() {
         </div>
       </header>
 
-      <main className="chat" aria-live="polite">
-        {mensagens.map((mensagem, indice) => (
-          <BolhaMensagem key={indice} mensagem={mensagem} />
+      <main className="chat entrar" style={{ animationDelay: "0.18s" }} aria-live="polite">
+        {mensagens.map((item) => (
+          <BolhaMensagem
+            key={item.id}
+            mensagem={item}
+            animar={item.animar}
+            aoTerminarFala={aoTerminarFala}
+          />
         ))}
 
         {carregando && (
@@ -123,9 +178,11 @@ export function App() {
         <div ref={fimDaLista} />
       </main>
 
-      <Sugestoes sugestoes={SUGESTOES} aoEscolher={enviar} desabilitado={carregando} />
+      <div className="entrar" style={{ animationDelay: "0.3s" }}>
+        <Sugestoes sugestoes={SUGESTOES} aoEscolher={enviar} desabilitado={carregando} />
+      </div>
 
-      <form className="entrada" onSubmit={aoSubmeter}>
+      <form className="entrada entrar" style={{ animationDelay: "0.36s" }} onSubmit={aoSubmeter}>
         <label className="sr-only" htmlFor="pergunta">
           Sua pergunta
         </label>
@@ -143,7 +200,7 @@ export function App() {
         </button>
       </form>
 
-      <footer className="rodape">
+      <footer className="rodape entrar" style={{ animationDelay: "0.42s" }}>
         Projeto acadêmico · dados fictícios · respostas geradas por IA (Google Gemini)
       </footer>
     </div>
