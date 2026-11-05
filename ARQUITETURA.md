@@ -144,7 +144,30 @@ backend/src
 
 frontend/src
 ├── api/client.ts      # cliente HTTP tipado
-├── components/        # bolha de mensagem, sugestões
+├── components/        # Mascote, bolha de mensagem, sugestões
 ├── App.tsx            # tela de chat
 └── main.tsx           # bootstrap React
 ```
+
+## 11. Experiência do frontend (para o vídeo)
+
+O frontend foi desenhado como uma "conversa com um mascote":
+
+- **Mascote `Byte`** — um monitorzinho com olhos, feito em **SVG puro** e animado
+  só com CSS. Ele tem quatro estados que reagem ao fluxo da conversa:
+  `ocioso` (flutua), `pensando` (olhos para cima + bolhas de pensamento),
+  `falando` (boca e ondas sonoras animadas) e `erro` (expressão de preocupação).
+- **Efeito de "fala"** — a resposta da IA é **datilografada letra a letra** na
+  bolha, sincronizada com o estado `falando` do mascote; ao terminar, o mascote
+  volta para `ocioso`.
+- **Animação de entrada** — cabeçalho, mascote, chat, sugestões e campo de
+  texto entram em cascata (`animation-delay` escalonado).
+- **Tema vivo** — fundo "aurora" com gradientes (ciano, coral, amarelo) que
+  derivam lentamente; tokens de cor centralizados em `:root`.
+- **Acessibilidade** — respeita `prefers-reduced-motion` (desliga animações e o
+  efeito de digitação), usa `aria-live` no chat, `role="alert"` nos erros e
+  mantém o texto completo em um `<span>` para leitores de tela mesmo durante a
+  digitação.
+
+> Demonstração: digite qualquer pergunta e observe o mascote **pensar** e depois
+> **falar** enquanto a resposta aparece.

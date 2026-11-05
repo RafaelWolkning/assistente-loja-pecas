@@ -24,6 +24,14 @@ contexto (grounding).
 > primeira requisição pode levar ~30–50 s para "acordar"; a interface mostra
 > esse estado automaticamente. Acesse a aplicação uma vez antes de gravar o vídeo.
 
+## Interface
+
+A interface é uma conversa com o mascote **Byte** — um computadorzinho com
+olhos, em SVG animado por CSS, que **pensa** e **fala** junto com a resposta
+(efeito de digitação). Tem animações de entrada, fundo "aurora" animado e
+respeita `prefers-reduced-motion`. Detalhes em
+[`ARQUITETURA.md`](./ARQUITETURA.md#11-experiência-do-frontend-para-o-vídeo).
+
 ## Endpoints da API
 
 | Método | Rota | Descrição |
