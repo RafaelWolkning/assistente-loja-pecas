@@ -16,8 +16,13 @@ contexto (grounding).
 
 | | URL |
 |---|---|
-| Aplicação (frontend) | URL_FRONTEND_AQUI |
-| API (backend) | URL_BACKEND_AQUI |
+| **Aplicação (frontend)** | https://bytepecas-web.vercel.app |
+| **API (backend)** | https://bytepecas-api.onrender.com |
+| Saúde da API | https://bytepecas-api.onrender.com/saude |
+
+> A API está no plano gratuito do Render e hiberna após ~15 min sem uso. A
+> primeira requisição pode levar ~30–50 s para "acordar"; a interface mostra
+> esse estado automaticamente. Acesse a aplicação uma vez antes de gravar o vídeo.
 
 ## Endpoints da API
 
