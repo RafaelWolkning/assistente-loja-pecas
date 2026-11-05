@@ -22,6 +22,27 @@ export interface Saude {
   dataHora: string;
 }
 
+export type OrigemPreco = "catalogo" | "estimativa";
+
+export interface PrecoLoja {
+  loja: string;
+  preco: number;
+}
+
+export interface ProdutoComPrecos {
+  nome: string;
+  categoria: string;
+  descricao: string;
+  precoReferencia: number;
+  origemPreco: OrigemPreco;
+  precos: PrecoLoja[];
+}
+
+export interface RespostaAtendimento {
+  mensagem: string;
+  produtos: ProdutoComPrecos[];
+}
+
 /** URL base da API (Render). Sem barra no final. */
 export const URL_API = (import.meta.env.VITE_API_URL ?? "http://localhost:3000").replace(
   /\/+$/,
@@ -68,8 +89,8 @@ export function listarProdutos(): Promise<{ produtos: Produto[] }> {
 export function perguntar(
   pergunta: string,
   historico: Mensagem[],
-): Promise<{ resposta: string }> {
-  return requisitar<{ resposta: string }>("/perguntar", {
+): Promise<RespostaAtendimento> {
+  return requisitar<RespostaAtendimento>("/perguntar", {
     method: "POST",
     body: JSON.stringify({ pergunta, historico }),
   });

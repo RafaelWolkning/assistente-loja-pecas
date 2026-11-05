@@ -1,6 +1,11 @@
 import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { obterSaude, perguntar, type Mensagem } from "./api/client.js";
+import {
+  obterSaude,
+  perguntar,
+  type Mensagem,
+  type ProdutoComPrecos,
+} from "./api/client.js";
 import { BolhaMensagem } from "./components/BolhaMensagem.js";
 import { Mascote, type EstadoMascote } from "./components/Mascote.js";
 import { Sugestoes } from "./components/Sugestoes.js";
@@ -8,6 +13,7 @@ import { Sugestoes } from "./components/Sugestoes.js";
 interface ItemChat extends Mensagem {
   id: number;
   animar?: boolean;
+  produtos?: ProdutoComPrecos[];
 }
 
 const MENSAGEM_INICIAL: ItemChat = {
@@ -106,13 +112,14 @@ export function App() {
       setCarregando(true);
 
       try {
-        const { resposta } = await perguntar(pergunta, historico);
+        const { mensagem, produtos } = await perguntar(pergunta, historico);
         setMensagens((atuais) => [
           ...atuais,
           {
             id: proximoId.current++,
             papel: "atendente",
-            conteudo: resposta,
+            conteudo: mensagem,
+            produtos,
             animar: !reduzirMovimento,
           },
         ]);

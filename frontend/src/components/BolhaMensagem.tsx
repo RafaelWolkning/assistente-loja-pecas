@@ -1,9 +1,16 @@
 import { Fragment, type ReactNode, useEffect, useRef, useState } from "react";
 
-import type { Mensagem } from "../api/client.js";
+import type { Papel, ProdutoComPrecos } from "../api/client.js";
+import { CartaoProduto } from "./CartaoProduto.js";
+
+interface MensagemExibida {
+  papel: Papel;
+  conteudo: string;
+  produtos?: ProdutoComPrecos[];
+}
 
 interface Props {
-  mensagem: Mensagem;
+  mensagem: MensagemExibida;
   animar?: boolean;
   aoTerminarFala?: () => void;
 }
@@ -14,7 +21,6 @@ const DURACAO_MAXIMA_MS = 2400;
 /**
  * Converte um subconjunto mínimo de markdown (apenas `**negrito**`) em nós do
  * React. É seguro por construção: não injeta HTML, apenas cria <strong>.
- * Rede de proteção caso a IA ignore a instrução de responder em texto simples.
  */
 export function formatarInline(texto: string): ReactNode {
   return texto.split(/(\*\*[^*\n]+\*\*)/g).map((parte, indice) => {
@@ -27,9 +33,31 @@ export function formatarInline(texto: string): ReactNode {
 }
 
 /**
+ * Renderiza a mensagem separando os parágrafos (linhas em branco criam
+ * respiro); linhas dentro do parágrafo são preservadas (white-space: pre-wrap).
+ */
+function Paragrafos({ texto, cursor }: { texto: string; cursor: boolean }) {
+  const blocos = texto.split(/\n{2,}/);
+
+  return (
+    <>
+      {blocos.map((bloco, indice) => {
+        const ultimo = indice === blocos.length - 1;
+        return (
+          <p key={indice} className="bolha__paragrafo">
+            {formatarInline(bloco)}
+            {cursor && ultimo && <span className="cursor" aria-hidden="true" />}
+          </p>
+        );
+      })}
+    </>
+  );
+}
+
+/**
  * Uma bolha de mensagem. Quando `animar` é verdadeiro, o texto é "datilografado"
- * letra a letra (efeito de fala do mascote) e `aoTerminarFala` é chamado no fim.
- * O texto completo permanece acessível a leitores de tela.
+ * letra a letra (efeito de fala do mascote); os produtos e a tabela de preços
+ * aparecem ao terminar. O texto completo permanece acessível a leitores de tela.
  */
 export function BolhaMensagem({ mensagem, animar = false, aoTerminarFala }: Props) {
   const [visivel, setVisivel] = useState(animar ? "" : mensagem.conteudo);
@@ -64,14 +92,23 @@ export function BolhaMensagem({ mensagem, animar = false, aoTerminarFala }: Prop
   const ehCliente = mensagem.papel === "cliente";
   const digitando = animar && visivel.length < mensagem.conteudo.length;
   const exibido = digitando ? visivel : mensagem.conteudo;
+  const temProdutos = !ehCliente && !digitando && (mensagem.produtos?.length ?? 0) > 0;
 
   return (
-    <div className={`bolha ${ehCliente ? "bolha--cliente" : "bolha--atendente"}`}>
+    <div className={`bolha ${ehCliente ? "bolha--cliente" : "bolha--atendente"} ${temProdutos ? "bolha--rica" : ""}`}>
       <span className="bolha__autor">{ehCliente ? "Você" : "Byte"}</span>
-      <p className="bolha__texto">
-        <span aria-hidden={digitando}>{formatarInline(exibido)}</span>
-        {digitando && <span className="cursor" aria-hidden="true" />}
-      </p>
+
+      <div className="bolha__corpo">
+        <Paragrafos texto={exibido} cursor={digitando} />
+      </div>
+
+      {temProdutos && (
+        <div className="produtos">
+          {mensagem.produtos?.map((produto, indice) => (
+            <CartaoProduto key={`${produto.nome}-${indice}`} produto={produto} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

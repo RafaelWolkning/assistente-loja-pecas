@@ -719,3 +719,224 @@ body::before {
     animation: none;
   }
 }
+
+/* ---- Parágrafos da mensagem ---- */
+.bolha__corpo {
+  line-height: 1.55;
+}
+
+.bolha__paragrafo {
+  margin: 0 0 0.65em;
+  white-space: pre-wrap;
+}
+
+.bolha__paragrafo:last-child {
+  margin-bottom: 0;
+}
+
+.bolha--rica {
+  max-width: 100%;
+  width: 100%;
+}
+
+/* ---- Cards de produto ---- */
+.produtos {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.produto {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--borda);
+  border-radius: 16px;
+  background: rgba(9, 14, 28, 0.55);
+  animation: surgir 0.35s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+}
+
+.produto__topo {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.produto__imagem {
+  flex: 0 0 auto;
+  width: 64px;
+  height: 64px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  color: #04202a;
+  background: linear-gradient(135deg, var(--ciano), var(--amarelo));
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.produto__imagem svg {
+  width: 40px;
+  height: 40px;
+}
+
+.produto__imagem--cpu {
+  background: linear-gradient(135deg, #ffd166, #ff9d4d);
+}
+.produto__imagem--gpu {
+  background: linear-gradient(135deg, #8b7bff, #ff6f61);
+  color: #1a0f2e;
+}
+.produto__imagem--memoria {
+  background: linear-gradient(135deg, #37e0a0, #23d5e0);
+}
+.produto__imagem--armazenamento {
+  background: linear-gradient(135deg, #4f8cff, #8b7bff);
+  color: #f0f4ff;
+}
+.produto__imagem--monitor {
+  background: linear-gradient(135deg, #23d5e0, #4f8cff);
+  color: #04202a;
+}
+.produto__imagem--periferico {
+  background: linear-gradient(135deg, #ff6f61, #ff9d8f);
+  color: #2a0d0a;
+}
+.produto__imagem--notebook {
+  background: linear-gradient(135deg, #9fb6e6, #4f8cff);
+  color: #0a1226;
+}
+.produto__imagem--placa {
+  background: linear-gradient(135deg, #37e0a0, #7bd67a);
+  color: #04241a;
+}
+.produto__imagem--fonte {
+  background: linear-gradient(135deg, #ffd166, #ff6f61);
+  color: #2a1200;
+}
+.produto__imagem--cooler {
+  background: linear-gradient(135deg, #23d5e0, #7bd67a);
+  color: #04241a;
+}
+.produto__imagem--gabinete {
+  background: linear-gradient(135deg, #6b7aa8, #4f8cff);
+  color: #eef3ff;
+}
+.produto__imagem--rede {
+  background: linear-gradient(135deg, #7bd67a, #23d5e0);
+  color: #04241a;
+}
+
+.produto__info {
+  min-width: 0;
+}
+
+.produto__categoria {
+  display: block;
+  font-size: 0.66rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--ciano);
+}
+
+.produto__nome {
+  margin: 2px 0 4px;
+  font-size: 1rem;
+  line-height: 1.25;
+}
+
+.produto__descricao {
+  margin: 0 0 6px;
+  font-size: 0.84rem;
+  color: var(--texto-suave);
+}
+
+.produto__origem {
+  display: inline-block;
+  font-size: 0.68rem;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--borda);
+  color: var(--texto-suave);
+}
+
+.produto__origem--catalogo {
+  color: var(--verde);
+  border-color: rgba(55, 224, 160, 0.45);
+}
+
+.produto__origem--estimativa {
+  color: var(--amarelo);
+  border-color: rgba(255, 209, 102, 0.45);
+}
+
+.produto__tabela-wrap {
+  overflow-x: auto;
+}
+
+.tabela {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.tabela caption {
+  text-align: left;
+  font-size: 0.68rem;
+  color: var(--texto-suave);
+  padding-bottom: 6px;
+}
+
+.tabela th,
+.tabela td {
+  padding: 8px 10px;
+  text-align: left;
+  border-bottom: 1px solid var(--borda);
+}
+
+.tabela thead th {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--texto-suave);
+}
+
+.tabela tbody th {
+  font-weight: 600;
+}
+
+.tabela td {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.tabela__linha--melhor {
+  background: rgba(55, 224, 160, 0.12);
+}
+
+.tabela__linha--melhor td {
+  color: var(--verde);
+  font-weight: 700;
+}
+
+.selo {
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: var(--verde);
+  color: #04241a;
+  padding: 2px 7px;
+  border-radius: 999px;
+  vertical-align: middle;
+}
+
+@media (max-width: 620px) {
+  .produto__topo {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
