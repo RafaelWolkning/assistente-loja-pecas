@@ -13,6 +13,7 @@ describe("construirPromptSistema", () => {
     expect(prompt).toContain("Ryzen 7 7800X3D");
     expect(prompt).toContain("R$ 2499.90");
     expect(prompt).toContain("12 un. em estoque");
+    expect(prompt).toContain("não use formatação markdown");
   });
 
   it("funciona com um catálogo vazio", () => {

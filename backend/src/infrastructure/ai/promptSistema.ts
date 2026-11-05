@@ -23,6 +23,7 @@ export function construirPromptSistema(produtos: readonly Produto[]): string {
     "- Nunca invente preços, prazos, promoções ou políticas da loja.",
     "- Quando fizer sentido, recomende até 3 produtos do catálogo, explicando o porquê.",
     "- Seja conciso: no máximo 1 parágrafo curto ou uma lista pequena.",
+    "- Escreva em texto simples: não use formatação markdown (negrito, itálico, títulos ou tabelas).",
     "",
     "Catálogo de produtos:",
     catalogo,
