@@ -28,8 +28,10 @@ contexto (grounding).
 
 A interface é uma conversa com o mascote **Byte** — um computadorzinho com
 olhos, em SVG animado por CSS, que **pensa** e **fala** junto com a resposta
-(efeito de digitação). Tem animações de entrada, fundo "aurora" animado e
-respeita `prefers-reduced-motion`. Detalhes em
+(efeito de digitação, com os parágrafos surgindo separados). As respostas vêm em
+**parágrafos espaçados**, seguidas de **cards de produto** com ilustração e uma
+**tabela de preços por loja** (melhor preço destacado). Há animações de entrada,
+fundo "aurora" animado e suporte a `prefers-reduced-motion`. Detalhes em
 [`ARQUITETURA.md`](./ARQUITETURA.md#11-experiência-do-frontend-para-o-vídeo).
 
 ## Endpoints da API
@@ -46,13 +48,43 @@ Exemplo:
 ```bash
 curl -X POST http://localhost:3000/perguntar \
   -H "Content-Type: application/json" \
-  -d '{"pergunta":"Vocês têm SSD NVMe de 1TB? Qual o preço?"}'
-# { "resposta": "Olá! Temos o SSD NVMe Kingston NV3 1TB por R$ 449.90 ..." }
+  -d '{"pergunta":"Quero um monitor bom para jogar"}'
+# {
+#   "mensagem": "Olá! Para uma experiência de jogo imersiva ...\n\nTemos ...",
+#   "produtos": [
+#     {
+#       "nome": "Monitor Gamer Samsung Odyssey G5 27\" 165Hz QHD",
+#       "categoria": "Monitores",
+#       "descricao": "Curvo 1000R, QHD 1440p, 165Hz ...",
+#       "precoReferencia": 1699,
+#       "origemPreco": "catalogo",
+#       "precos": [
+#         { "loja": "Hardware Prime", "preco": 1632.67 },
+#         { "loja": "BytePeças", "preco": 1669.37 }
+#       ]
+#     }
+#   ]
+# }
 ```
 
 O corpo de `POST /perguntar` aceita `pergunta` (obrigatória, 1–1000 caracteres)
 e `historico` (opcional, até 20 mensagens `{ papel: "cliente"|"atendente",
 conteudo }`) para conversas com contexto.
+
+## Recursos
+
+- **Atendimento estruturado** — a IA devolve, via *JSON Schema*, uma mensagem em
+  parágrafos **mais** a lista de produtos citados (não texto solto). O backend
+  enriquece cada produto com a **comparação de preços** entre as lojas parceiras.
+- **Tabela de preços** — para cada produto, a interface mostra uma tabela
+  `Loja × Preço` e destaca o **melhor preço**. Os valores são **simulados**
+  (projeto acadêmico) e as lojas são fictícias.
+- **Conhecimento amplo de tecnologia** — o atendente não se limita ao catálogo:
+  fala de monitores, periféricos, notebooks, redes etc. Quando o item não está
+  no catálogo, estima um preço e a interface marca como **"Preço estimado pela
+  IA"** (itens do catálogo aparecem como **"Preço de catálogo BytePeças"**).
+- **Cards de produto** — cada produto aparece com uma **ilustração vetorial**
+  (SVG, sem imagens externas), categoria, descrição e a tabela de preços.
 
 ## Stack
 

@@ -45,7 +45,8 @@ sobe o servidor.
 |---|---|---|
 | `RespostaGenerator` | `GeminiRespostaGenerator` | Gera a resposta da IA |
 | `RespostaGenerator` (decorado) | `GeradorComRetentativas` | Adiciona retry com backoff |
-| `CatalogoProdutos` | `CatalogoEmMemoria` | Fornece os produtos (grounding) |
+| `CatalogoProdutos` | `CatalogoEmMemoria` | Fornece os produtos (grounding + preço de catálogo) |
+| `ComparadorDePrecos` | `ComparadorDePrecosSimulado` | Gera a tabela de preços por loja parceira |
 
 Essa indireção é o que permite **simular a IA nos testes**: basta passar um
 `RespostaGenerator` falso para `montarAplicacao`, sem chave e sem rede.
@@ -67,10 +68,21 @@ Essa indireção é o que permite **simular a IA nos testes**: basta passar um
    transitórios (`429`/`503`) com backoff exponencial (800ms, 1600ms, …).
 6. **Adaptador Gemini** — `GeminiRespostaGenerator` monta o conteúdo
    (histórico com papéis `cliente`→`user`, `atendente`→`model`, + a pergunta) e
-   chama `ai.models.generateContent` com a **instrução de sistema** que contém a
-   persona "Byte" e o catálogo (grounding). Erros viram `ErroDeIntegracaoIA`.
-7. **Resposta** — a rota devolve `200 { "resposta": "..." }`. Se a IA falhar,
-   o handler de erro converte `ErroDeIntegracaoIA` em `503` amigável.
+   chama `ai.models.generateContent` com a **instrução de sistema** (persona
+   "Byte", catálogo como grounding e tom de **conhecimento amplo de
+   tecnologia**) e **saída estruturada** (`responseMimeType:
+   application/json` + `responseJsonSchema`). A IA devolve
+   `{ mensagem, produtos[] }`; o adaptador interpreta e valida o JSON. Erros
+   viram `ErroDeIntegracaoIA`.
+7. **Comparação de preços** — para cada produto, o `PerguntarUseCase` consulta o
+   `ComparadorDePrecos` (simulado e **determinístico**) e marca a origem do preço
+   (`catalogo` se o produto estiver no catálogo; `estimativa` caso contrário).
+8. **Resposta** — a rota devolve `200 { mensagem, produtos[] }`, onde cada
+   produto traz `precos: [{ loja, preco }]`. Se a IA falhar, o handler de erro
+   converte `ErroDeIntegracaoIA` em `503` amigável.
+9. **Frontend** — o React adiciona a bolha do atendente: a **mensagem em
+   parágrafos** é datilografada e, ao terminar, surgem os **cards de produto**
+   com ilustração e a **tabela de preços** por loja (melhor preço destacado).
 8. **Frontend** — o React adiciona a bolha do atendente ao chat.
 
 ## 4. Tratamento de erros (mapa de status)

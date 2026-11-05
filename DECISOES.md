@@ -46,6 +46,27 @@ retentativas** (`GeradorComRetentativas`) com backoff exponencial, que só
 retenta erros transitórios. O adaptador traduz falhas do provedor em
 `ErroDeIntegracaoIA`, que a camada HTTP converte em `503` com mensagem amigável.
 
+## Por que saída estruturada (JSON Schema) e comparação simulada
+
+Pedir texto livre à IA e depois "adivinhar" o que ela disse seria frágil. Em vez
+disso, uso **saída estruturada** (`responseMimeType: application/json` +
+`responseJsonSchema`): o modelo devolve `mensagem` + `produtos[]`, e o backend
+enriquece cada produto com a **comparação de preços**. Assim a interface monta
+tabelas de verdade (Loja × Preço), e os testes continuam mockando a IA — nada de
+fazer *parsing* de texto solto.
+
+Foi uma **decisão explícita usar lojas fictícias e preços simulados**: inventar
+preços de varejistas reais seria enganoso, ainda mais em um trabalho acadêmico. O
+comparador é **determinístico** (hash do nome do produto + loja), então a mesma
+pergunta devolve sempre a mesma tabela — ótimo para demonstração e para testes.
+Trocar por dados de preços reais é substituir um único adaptador, sem tocar em
+domínio, casos de uso ou frontend.
+
+Também abri o conhecimento do atendente para **toda a tecnologia** (monitores,
+periféricos, notebooks, redes), em vez de restringi-lo ao catálogo: quando o item
+existe no catálogo, uso o preço real da loja; quando não existe, a IA estima um
+preço e a resposta é marcada como "estimativa".
+
 ## O que aprendi
 
 Aprendi a manter o SDK de IA isolado em uma borda do sistema, a usar injeção de
