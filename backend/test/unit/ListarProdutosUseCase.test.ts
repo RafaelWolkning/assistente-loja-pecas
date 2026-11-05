@@ -9,6 +9,9 @@ class CatalogoFake implements CatalogoProdutos {
   listar(): readonly Produto[] {
     return this.produtos;
   }
+  buscarPorNome(nome: string): Produto | undefined {
+    return this.produtos.find((produto) => produto.nome === nome);
+  }
 }
 
 const produto: Produto = {

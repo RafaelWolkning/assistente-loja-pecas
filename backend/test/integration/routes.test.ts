@@ -2,6 +2,7 @@ import type { FastifyInstance } from "fastify";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { montarAplicacao } from "../../src/composition.js";
+import type { Atendimento } from "../../src/domain/entities/Atendimento.js";
 import { ErroDeIntegracaoIA } from "../../src/domain/errors/ErroDeIntegracaoIA.js";
 import type {
   EntradaAtendimento,
@@ -23,11 +24,16 @@ const configTeste: Config = {
 class GeradorEspiao implements RespostaGenerator {
   public ultimaEntrada: EntradaAtendimento | undefined;
 
-  constructor(private readonly resposta = "Olá! Sou o Byte da BytePeças.") {}
+  constructor(
+    private readonly atendimento: Atendimento = {
+      mensagem: "Olá! Sou o Byte da BytePeças.",
+      produtos: [],
+    },
+  ) {}
 
-  async gerarResposta(entrada: EntradaAtendimento): Promise<string> {
+  async gerarAtendimento(entrada: EntradaAtendimento): Promise<Atendimento> {
     this.ultimaEntrada = entrada;
-    return this.resposta;
+    return this.atendimento;
   }
 }
 
@@ -70,7 +76,6 @@ describe("API HTTP (integração, IA simulada)", () => {
       uptimeSegundos: 12,
       versao: "0.0.0-teste",
       modelo: "gemini-fake",
-      dataHora: "2026-11-04T12:00:00.000Z",
     });
   });
 
@@ -84,7 +89,7 @@ describe("API HTTP (integração, IA simulada)", () => {
     expect(resposta.json().produtos.length).toBeGreaterThan(0);
   });
 
-  it("POST /perguntar devolve a resposta da IA", async () => {
+  it("POST /perguntar devolve mensagem e produtos", async () => {
     const gerador = new GeradorEspiao();
     const resposta = await criarApp(gerador).inject({
       method: "POST",
@@ -94,24 +99,37 @@ describe("API HTTP (integração, IA simulada)", () => {
 
     expect(resposta.statusCode).toBe(200);
     expect(resposta.json()).toEqual({
-      resposta: "Olá! Sou o Byte da BytePeças.",
+      mensagem: "Olá! Sou o Byte da BytePeças.",
+      produtos: [],
     });
     expect(gerador.ultimaEntrada?.pergunta).toBe("Quero um SSD NVMe");
   });
 
-  it("POST /perguntar repassa o histórico", async () => {
-    const gerador = new GeradorEspiao();
+  it("POST /perguntar enriquece produtos com a comparação de preços", async () => {
+    const gerador = new GeradorEspiao({
+      mensagem: "Separei isto para você:",
+      produtos: [
+        {
+          nome: "Monitor Gamer Samsung Odyssey G5",
+          categoria: "Monitores",
+          descricao: "27 polegadas 165Hz",
+          precoReferencia: 1699,
+        },
+      ],
+    });
+
     const resposta = await criarApp(gerador).inject({
       method: "POST",
       url: "/perguntar",
-      payload: {
-        pergunta: "E as placas de vídeo?",
-        historico: [{ papel: "cliente", conteudo: "Oi" }],
-      },
+      payload: { pergunta: "Quero um monitor" },
     });
 
-    expect(resposta.statusCode).toBe(200);
-    expect(gerador.ultimaEntrada?.historico).toHaveLength(1);
+    const corpo = resposta.json();
+    expect(corpo.produtos).toHaveLength(1);
+    expect(corpo.produtos[0].origemPreco).toBe("catalogo");
+    expect(corpo.produtos[0].precos.length).toBeGreaterThan(0);
+    expect(corpo.produtos[0].precos[0]).toHaveProperty("loja");
+    expect(corpo.produtos[0].precos[0]).toHaveProperty("preco");
   });
 
   it("POST /perguntar rejeita payload inválido (400)", async () => {
@@ -145,7 +163,7 @@ describe("API HTTP (integração, IA simulada)", () => {
 
   it("POST /perguntar devolve 503 quando o provedor de IA falha", async () => {
     const gerador = {
-      gerarResposta: vi
+      gerarAtendimento: vi
         .fn()
         .mockRejectedValue(new ErroDeIntegracaoIA("provedor fora do ar")),
     };
