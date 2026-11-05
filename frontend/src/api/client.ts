@@ -86,12 +86,32 @@ export function listarProdutos(): Promise<{ produtos: Produto[] }> {
   return requisitar<{ produtos: Produto[] }>("/produtos");
 }
 
-export function perguntar(
+interface RespostaBruta {
+  mensagem?: unknown;
+  resposta?: unknown;
+  produtos?: unknown;
+}
+
+export async function perguntar(
   pergunta: string,
   historico: Mensagem[],
 ): Promise<RespostaAtendimento> {
-  return requisitar<RespostaAtendimento>("/perguntar", {
+  const dados = await requisitar<RespostaBruta>("/perguntar", {
     method: "POST",
     body: JSON.stringify({ pergunta, historico }),
   });
+
+  // Tolera versões anteriores da API (que devolviam apenas `resposta`).
+  const mensagem =
+    typeof dados.mensagem === "string"
+      ? dados.mensagem
+      : typeof dados.resposta === "string"
+        ? dados.resposta
+        : "";
+
+  const produtos = Array.isArray(dados.produtos)
+    ? (dados.produtos as ProdutoComPrecos[])
+    : [];
+
+  return { mensagem, produtos };
 }
