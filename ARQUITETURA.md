@@ -47,6 +47,8 @@ sobe o servidor.
 | `RespostaGenerator` (decorado) | `GeradorComRetentativas` | Adiciona retry com backoff |
 | `CatalogoProdutos` | `CatalogoEmMemoria` | Fornece os produtos (grounding + preço de catálogo) |
 | `ComparadorDePrecos` | `ComparadorDePrecosSimulado` | Gera a tabela de preços por loja parceira |
+| `RecuperadorConhecimento` | `RecuperadorHibrido` (vetorial + lexical) | Recupera trechos da base de conhecimento (RAG) |
+| `Embedador` | `EmbedadorGemini` | Gera embeddings para o RAG |
 
 Essa indireção é o que permite **simular a IA nos testes**: basta passar um
 `RespostaGenerator` falso para `montarAplicacao`, sem chave e sem rede.
@@ -183,3 +185,26 @@ O frontend foi desenhado como uma "conversa com um mascote":
 
 > Demonstração: digite qualquer pergunta e observe o mascote **pensar** e depois
 > **falar** enquanto a resposta aparece.
+
+## 12. RAG, busca na web e controle de escopo
+
+Três recursos que ampliam a qualidade das respostas **sem quebrar** quando algo
+externo falha (degradação em cascata):
+
+1. **RAG (retrieval-augmented generation)** — o caso de uso recupera trechos
+   relevantes da base de conhecimento de hardware (`infrastructure/rag/documentos.ts`)
+   e os injeta no *system prompt*. O recuperador é **híbrido**: tenta
+   `RecuperadorVetorial` (embeddings `gemini-embedding-001` + similaridade de
+   cosseno) e, se a cota/API falhar, cai para `RecuperadorLexical` (BM25
+   simplificado, **sem nenhuma chamada de API**). Assim o RAG nunca fica fora do ar.
+2. **Busca na web (Google Search grounding)** — quando `USAR_BUSCA_WEB=true`, a
+   chamada inclui `tools: [{ googleSearch: {} }]`; as fontes retornadas em
+   `groundingMetadata` viram links na resposta. Se a busca falhar (ex.: cota do
+   plano gratuito), um *circuit breaker* desliga a busca e a resposta é refeita
+   **sem ela**, apoiada no RAG.
+3. **Controle de escopo** — o schema de saída inclui o campo booleano
+   `assuntoDeTecnologia`. Se vier `false`, o backend devolve uma **recusa
+   educada** padrão e nenhum produto — sem custo de chamada extra.
+
+Cada etapa degrada de forma independente: busca → RAG vetorial → RAG lexical.
+O pior caso ainda é uma resposta útil, só que menos fundamentada.

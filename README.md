@@ -85,6 +85,16 @@ conteudo }`) para conversas com contexto.
   IA"** (itens do catálogo aparecem como **"Preço de catálogo BytePeças"**).
 - **Cards de produto** — cada produto aparece com uma **ilustração vetorial**
   (SVG, sem imagens externas), categoria, descrição e a tabela de preços.
+- **RAG (base de conhecimento)** — uma base de hardware (especificações,
+  compatibilidade entre peças, guias) é recuperada por similaridade e fundamenta
+  as respostas técnicas. Funciona com **embeddings** e, se a cota falhar, cai
+  automaticamente para uma **busca lexical** (sem custo de API).
+- **Busca na web (Google Search grounding)** — quando disponível, o atendente
+  consulta a web e a interface mostra as **fontes** consultadas. Se a busca
+  falhar (ex.: cota do tier grátis), a resposta continua usando o RAG.
+- **Escopo restrito** — o atendente só responde sobre **computadores e
+  tecnologia**. Perguntas fora do tema (ex.: peças de carro) recebem uma recusa
+  educada.
 
 ## Stack
 
@@ -138,6 +148,10 @@ Backend (`backend/.env`):
 | `LOG_LEVEL` | não | `info` | Nível de log do Fastify |
 | `IA_TENTATIVAS` | não | `3` | Tentativas em erros transitórios |
 | `IA_ATRASO_BASE_MS` | não | `800` | Backoff base (cresce exponencialmente) |
+| `USAR_BUSCA_WEB` | não | `true` | Ativa o Google Search grounding (com fallback) |
+| `RAG_HABILITADO` | não | `true` | Ativa a recuperação da base de conhecimento |
+| `RAG_TOP_K` | não | `4` | Quantos trechos de conhecimento injetar |
+| `EMBED_MODEL` | não | `gemini-embedding-001` | Modelo de embeddings do RAG |
 
 Frontend (`frontend/.env`):
 

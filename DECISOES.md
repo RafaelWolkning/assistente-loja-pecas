@@ -67,6 +67,26 @@ periféricos, notebooks, redes), em vez de restringi-lo ao catálogo: quando o i
 existe no catálogo, uso o preço real da loja; quando não existe, a IA estima um
 preço e a resposta é marcada como "estimativa".
 
+## Por que RAG, busca na web e escopo restrito — e a lição sobre cota
+
+Para responder bem sobre **qualquer** tecnologia, adicionei três camadas. O
+**RAG** recupera trechos de uma base de hardware (especificações, compatibilidade
+entre peças, guias) e os injeta no prompt. Implementei em duas versões: vetorial
+(embeddings `gemini-embedding-001` + cosseno) e lexical (BM25 simplificado). O
+recuperador é **híbrido**: usa embeddings e, se a API falhar, cai para a busca
+lexical, que **não gasta cota**. A **busca na web** (Google Search grounding) é
+opcional e tem *circuit breaker*: se falhar, a resposta é refeita sem ela. O
+**escopo restrito** é um campo booleano no próprio JSON Schema (`assuntoDeTecnologia`),
+então recusar "peças de carro" não custa uma chamada extra.
+
+A grande lição foi sobre **cota**: durante os testes esgotei a cota diária do
+tier grátis do Gemini e passei a receber `429` em todos os modelos. Isso me
+forçou a projetar **degradação em cascata** (busca → RAG vetorial → RAG lexical)
+e a nunca depender de um único recurso externo. Também aprendi que embeddings e
+geração têm cotas separadas — por isso o RAG continua funcionando mesmo com a
+geração limitada. Nenhuma dessas camadas quebra a aplicação: o pior caso é uma
+resposta um pouco menos fundamentada.
+
 ## O que aprendi
 
 Aprendi a manter o SDK de IA isolado em uma borda do sistema, a usar injeção de
