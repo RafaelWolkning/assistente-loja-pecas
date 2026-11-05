@@ -27,6 +27,10 @@ describe("carregarConfig", () => {
     expect(config.versao).toBe(VERSAO_PADRAO);
     expect(config.tentativasIA).toBe(TENTATIVAS_PADRAO);
     expect(config.atrasoBaseMs).toBe(ATRASO_BASE_PADRAO_MS);
+    expect(config.usarBuscaWeb).toBe(true);
+    expect(config.ragHabilitado).toBe(true);
+    expect(config.ragTopK).toBe(4);
+    expect(config.embedModelo).toBe("gemini-embedding-001");
   });
 
   it("faz parse de uma lista de origens CORS", () => {
@@ -64,6 +68,10 @@ describe("carregarConfig", () => {
       APP_VERSION: "2.0.0",
       IA_TENTATIVAS: "5",
       IA_ATRASO_BASE_MS: "100",
+      USAR_BUSCA_WEB: "false",
+      RAG_HABILITADO: "no",
+      RAG_TOP_K: "6",
+      EMBED_MODEL: "gemini-embedding-2",
     });
 
     expect(config).toMatchObject({
@@ -73,6 +81,16 @@ describe("carregarConfig", () => {
       versao: "2.0.0",
       tentativasIA: 5,
       atrasoBaseMs: 100,
+      usarBuscaWeb: false,
+      ragHabilitado: false,
+      ragTopK: 6,
+      embedModelo: "gemini-embedding-2",
     });
+  });
+
+  it("aceita variações de booleanos", () => {
+    expect(carregarConfig({ GEMINI_API_KEY: "k", USAR_BUSCA_WEB: "1" }).usarBuscaWeb).toBe(true);
+    expect(carregarConfig({ GEMINI_API_KEY: "k", USAR_BUSCA_WEB: "sim" }).usarBuscaWeb).toBe(true);
+    expect(carregarConfig({ GEMINI_API_KEY: "k", USAR_BUSCA_WEB: "off" }).usarBuscaWeb).toBe(false);
   });
 });

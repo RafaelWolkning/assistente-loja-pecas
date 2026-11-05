@@ -5,7 +5,12 @@ import type { EntradaAtendimento } from "../../src/domain/ports/RespostaGenerato
 import { GeradorComRetentativas } from "../../src/infrastructure/ai/GeradorComRetentativas.js";
 
 const entrada: EntradaAtendimento = { pergunta: "oi", historico: [] };
-const atendimento: Atendimento = { mensagem: "ok", produtos: [] };
+const atendimento: Atendimento = {
+  mensagem: "ok",
+  produtos: [],
+  assuntoDeTecnologia: true,
+  fontesWeb: [],
+};
 
 describe("GeradorComRetentativas", () => {
   it("não retenta quando a primeira tentativa funciona", async () => {

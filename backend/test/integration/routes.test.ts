@@ -28,6 +28,8 @@ class GeradorEspiao implements RespostaGenerator {
     private readonly atendimento: Atendimento = {
       mensagem: "Olá! Sou o Byte da BytePeças.",
       produtos: [],
+      assuntoDeTecnologia: true,
+      fontesWeb: [],
     },
   ) {}
 
@@ -101,8 +103,31 @@ describe("API HTTP (integração, IA simulada)", () => {
     expect(resposta.json()).toEqual({
       mensagem: "Olá! Sou o Byte da BytePeças.",
       produtos: [],
+      foraDeEscopo: false,
+      fontesWeb: [],
+      conhecimento: [],
     });
     expect(gerador.ultimaEntrada?.pergunta).toBe("Quero um SSD NVMe");
+  });
+
+  it("POST /perguntar recusa assunto fora do escopo de tecnologia", async () => {
+    const gerador = new GeradorEspiao({
+      mensagem: "qualquer",
+      produtos: [],
+      assuntoDeTecnologia: false,
+      fontesWeb: [],
+    });
+    const resposta = await criarApp(gerador).inject({
+      method: "POST",
+      url: "/perguntar",
+      payload: { pergunta: "Melhor pneu para carro" },
+    });
+
+    const corpo = resposta.json();
+    expect(resposta.statusCode).toBe(200);
+    expect(corpo.foraDeEscopo).toBe(true);
+    expect(corpo.produtos).toEqual([]);
+    expect(corpo.mensagem).toMatch(/só consigo ajudar com computadores/);
   });
 
   it("POST /perguntar enriquece produtos com a comparação de preços", async () => {
@@ -116,6 +141,8 @@ describe("API HTTP (integração, IA simulada)", () => {
           precoReferencia: 1699,
         },
       ],
+      assuntoDeTecnologia: true,
+      fontesWeb: [],
     });
 
     const resposta = await criarApp(gerador).inject({
