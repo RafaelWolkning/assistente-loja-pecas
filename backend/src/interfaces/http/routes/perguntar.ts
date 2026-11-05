@@ -33,8 +33,35 @@ const esquemaPerguntar = {
   response: {
     200: {
       type: "object",
-      properties: { resposta: { type: "string" } },
-      required: ["resposta"],
+      properties: {
+        mensagem: { type: "string" },
+        produtos: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              nome: { type: "string" },
+              categoria: { type: "string" },
+              descricao: { type: "string" },
+              precoReferencia: { type: "number" },
+              origemPreco: { type: "string" },
+              precos: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    loja: { type: "string" },
+                    preco: { type: "number" },
+                  },
+                  required: ["loja", "preco"],
+                },
+              },
+            },
+            required: ["nome", "categoria", "descricao", "precoReferencia", "origemPreco", "precos"],
+          },
+        },
+      },
+      required: ["mensagem", "produtos"],
     },
   },
 } as const;

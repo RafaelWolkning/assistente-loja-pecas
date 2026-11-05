@@ -4,18 +4,21 @@ import { ListarProdutosUseCase } from "./application/usecases/ListarProdutosUseC
 import { ObterSaudeUseCase } from "./application/usecases/ObterSaudeUseCase.js";
 import { PerguntarUseCase } from "./application/usecases/PerguntarUseCase.js";
 import type { CatalogoProdutos } from "./domain/ports/CatalogoProdutos.js";
+import type { ComparadorDePrecos } from "./domain/ports/ComparadorDePrecos.js";
 import type { RespostaGenerator } from "./domain/ports/RespostaGenerator.js";
 import { GeminiRespostaGenerator } from "./infrastructure/ai/GeminiRespostaGenerator.js";
 import { GeradorComRetentativas } from "./infrastructure/ai/GeradorComRetentativas.js";
 import { construirPromptSistema } from "./infrastructure/ai/promptSistema.js";
 import { CatalogoEmMemoria } from "./infrastructure/catalog/CatalogoEmMemoria.js";
 import type { Config } from "./infrastructure/config/env.js";
+import { ComparadorDePrecosSimulado } from "./infrastructure/precos/ComparadorDePrecosSimulado.js";
 import { construirApp } from "./interfaces/http/app.js";
 
 /** Pontos de substituição usados pelos testes (injeção de dependência). */
 export interface OverridesComposicao {
   gerador?: RespostaGenerator;
   catalogo?: CatalogoProdutos;
+  comparador?: ComparadorDePrecos;
   obterUptime?: () => number;
   agora?: () => Date;
 }
@@ -41,7 +44,9 @@ export function montarAplicacao(
       { tentativas: config.tentativasIA, atrasoBaseMs: config.atrasoBaseMs },
     );
 
-  const perguntar = new PerguntarUseCase(gerador);
+  const comparador = overrides.comparador ?? new ComparadorDePrecosSimulado();
+
+  const perguntar = new PerguntarUseCase(gerador, comparador, catalogo);
   const saude = new ObterSaudeUseCase({
     modelo: config.geminiModelo,
     versao: config.versao,

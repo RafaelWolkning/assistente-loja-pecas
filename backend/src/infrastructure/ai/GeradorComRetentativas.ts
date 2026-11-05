@@ -1,3 +1,4 @@
+import type { Atendimento } from "../../domain/entities/Atendimento.js";
 import type {
   EntradaAtendimento,
   RespostaGenerator,
@@ -27,13 +28,13 @@ export class GeradorComRetentativas implements RespostaGenerator {
     private readonly opcoes: OpcoesRetentativa,
   ) {}
 
-  async gerarResposta(entrada: EntradaAtendimento): Promise<string> {
+  async gerarAtendimento(entrada: EntradaAtendimento): Promise<Atendimento> {
     const esperar = this.opcoes.esperar ?? esperarPadrao;
     let ultimoErro: unknown;
 
     for (let tentativa = 1; tentativa <= this.opcoes.tentativas; tentativa += 1) {
       try {
-        return await this.delegate.gerarResposta(entrada);
+        return await this.delegate.gerarAtendimento(entrada);
       } catch (erro) {
         ultimoErro = erro;
         const ultimaTentativa = tentativa === this.opcoes.tentativas;

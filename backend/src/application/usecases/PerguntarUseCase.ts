@@ -1,5 +1,11 @@
+import type {
+  ProdutoComPrecos,
+  RespostaAtendimento,
+} from "../../domain/entities/Atendimento.js";
 import { ErroDeValidacao } from "../../domain/errors/ErroDeValidacao.js";
 import type { Mensagem } from "../../domain/entities/Mensagem.js";
+import type { CatalogoProdutos } from "../../domain/ports/CatalogoProdutos.js";
+import type { ComparadorDePrecos } from "../../domain/ports/ComparadorDePrecos.js";
 import type { RespostaGenerator } from "../../domain/ports/RespostaGenerator.js";
 
 export const TAMANHO_MAXIMO_PERGUNTA = 1000;
@@ -10,18 +16,19 @@ export interface EntradaPerguntar {
   historico?: Mensagem[];
 }
 
-export interface SaidaPerguntar {
-  resposta: string;
-}
-
 /**
- * Caso de uso: receber a pergunta do cliente, validar e delegar a geração
- * da resposta ao gerador de IA (porta). Não conhece HTTP nem Gemini.
+ * Caso de uso: receber a pergunta do cliente, validar, pedir o atendimento à
+ * IA (porta) e enriquecer cada produto citado com a comparação de preços entre
+ * as lojas parceiras (porta). Não conhece HTTP, Gemini nem banco.
  */
 export class PerguntarUseCase {
-  constructor(private readonly gerador: RespostaGenerator) {}
+  constructor(
+    private readonly gerador: RespostaGenerator,
+    private readonly comparador: ComparadorDePrecos,
+    private readonly catalogo: CatalogoProdutos,
+  ) {}
 
-  async executar(entrada: EntradaPerguntar): Promise<SaidaPerguntar> {
+  async executar(entrada: EntradaPerguntar): Promise<RespostaAtendimento> {
     const pergunta = (entrada.pergunta ?? "").trim();
 
     if (pergunta.length === 0) {
@@ -40,8 +47,17 @@ export class PerguntarUseCase {
       );
     }
 
-    const resposta = await this.gerador.gerarResposta({ pergunta, historico });
+    const atendimento = await this.gerador.gerarAtendimento({ pergunta, historico });
 
-    return { resposta: resposta.trim() };
+    const produtos: ProdutoComPrecos[] = atendimento.produtos.map((produto) => ({
+      ...produto,
+      origemPreco: this.catalogo.buscarPorNome(produto.nome) ? "catalogo" : "estimativa",
+      precos: this.comparador.comparar(produto),
+    }));
+
+    return {
+      mensagem: atendimento.mensagem.trim(),
+      produtos,
+    };
   }
 }

@@ -5,4 +5,6 @@ import type { Produto } from "../entities/Produto.js";
  */
 export interface CatalogoProdutos {
   listar(): readonly Produto[];
+  /** Busca um produto pelo nome (correspondência tolerante). */
+  buscarPorNome(nome: string): Produto | undefined;
 }
