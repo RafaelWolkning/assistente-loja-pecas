@@ -1,14 +1,6 @@
 import type { ProdutoComPrecos } from "../api/client.js";
+import { formatarBRL } from "../utils/formato.js";
 import { ImagemProduto } from "./ImagemProduto.js";
-
-const FORMATADOR_BRL = new Intl.NumberFormat("pt-BR", {
-  style: "currency",
-  currency: "BRL",
-});
-
-export function formatarBRL(valor: number): string {
-  return FORMATADOR_BRL.format(valor);
-}
 
 /** Card de um produto: ilustração, descrição e tabela de preços por loja. */
 export function CartaoProduto({ produto }: { produto: ProdutoComPrecos }) {

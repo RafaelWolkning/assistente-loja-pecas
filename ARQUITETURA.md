@@ -158,15 +158,25 @@ backend/src
 
 frontend/src
 ├── api/client.ts      # cliente HTTP tipado
-├── components/        # Mascote, bolha de mensagem, sugestões
-├── App.tsx            # tela de chat
+├── components/        # vitrine, cards, mascote, chat, ilustrações SVG
+├── utils/             # formatação de preços (BRL)
+├── App.tsx            # home: catálogo + assistente
 └── main.tsx           # bootstrap React
 ```
 
 ## 11. Experiência do frontend (para o vídeo)
 
-O frontend foi desenhado como uma "conversa com um mascote":
+A home funciona como uma **loja**, não apenas um chat:
 
+- **Vitrine de peças** — o catálogo vem de `GET /produtos` e é exibido em cards
+  com ilustração vetorial de cada componente (CPU, GPU, memória, SSD, monitor
+  etc.), preço, parcela simulada e estoque. Há **busca livre** e **filtro por
+  categoria**.
+- **Hero e diferenciais** — uma cena de PC em SVG (monitor, gabinete, teclado e
+  peças flutuando) apresenta a loja; três cards explicam catálogo, comparação de
+  preços e atendimento com IA.
+- **Assistente integrado** — ao clicar em "Perguntar ao Byte" num card, a página
+  rola até o chat e envia uma pergunta sobre aquele produto.
 - **Mascote `Byte`** — um monitorzinho com olhos, feito em **SVG puro** e animado
   só com CSS. Ele tem quatro estados que reagem ao fluxo da conversa:
   `ocioso` (flutua), `pensando` (olhos para cima + bolhas de pensamento),
@@ -174,8 +184,6 @@ O frontend foi desenhado como uma "conversa com um mascote":
 - **Efeito de "fala"** — a resposta da IA é **datilografada letra a letra** na
   bolha, sincronizada com o estado `falando` do mascote; ao terminar, o mascote
   volta para `ocioso`.
-- **Animação de entrada** — cabeçalho, mascote, chat, sugestões e campo de
-  texto entram em cascata (`animation-delay` escalonado).
 - **Tema vivo** — fundo "aurora" com gradientes (ciano, coral, amarelo) que
   derivam lentamente; tokens de cor centralizados em `:root`.
 - **Acessibilidade** — respeita `prefers-reduced-motion` (desliga animações e o
@@ -183,8 +191,9 @@ O frontend foi desenhado como uma "conversa com um mascote":
   mantém o texto completo em um `<span>` para leitores de tela mesmo durante a
   digitação.
 
-> Demonstração: digite qualquer pergunta e observe o mascote **pensar** e depois
-> **falar** enquanto a resposta aparece.
+> Demonstração: percorra o catálogo, filtre por categoria e depois peça ao Byte
+> uma montagem; observe o mascote **pensar** e **falar** enquanto a resposta
+> aparece.
 
 ## 12. RAG, busca na web e controle de escopo
 

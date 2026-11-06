@@ -2,13 +2,15 @@
   "name": "assistente-loja-pecas-frontend",
   "version": "1.0.0",
   "private": true,
-  "description": "Interface web do assistente de atendimento da loja fictícia BytePeças",
+  "description": "Vitrine de peças e assistente de atendimento da loja fictícia BytePeças",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "react": "^19.3.1",
@@ -19,6 +21,7 @@
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.2.1",
     "typescript": "^7.0.2",
-    "vite": "^8.3.5"
+    "vite": "^8.3.5",
+    "vitest": "^5.1.0"
   }
 }

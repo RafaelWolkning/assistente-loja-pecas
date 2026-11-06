@@ -50,7 +50,7 @@ jobs:
           if-no-files-found: ignore
 
   frontend:
-    name: Frontend — typecheck e build
+    name: Frontend — testes, typecheck e build
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -68,6 +68,9 @@ jobs:
 
       - name: Instalar dependências
         run: npm ci
+
+      - name: Rodar testes da vitrine e do assistente
+        run: npm test
 
       - name: Checar tipos e buildar
         run: npm run build

@@ -25,7 +25,7 @@ export function chaveCategoria(categoria: string, nome: string): Chave {
   if (/ssd|\bhd\b|armazen|nvme/.test(texto)) return "armazenamento";
   if (/note|lap|ultrabook/.test(texto)) return "notebook";
   if (/teclado|mouse|perif|headset|fone|webcam|gamepad/.test(texto)) return "periferico";
-  if (/placa-?m[aã]e|motherboard/.test(texto)) return "placa";
+  if (/placas?-?m[aã]e|motherboard/.test(texto)) return "placa";
   if (/fonte|\bpsu\b/.test(texto)) return "fonte";
   if (/cooler|refrigera|water|fan/.test(texto)) return "cooler";
   if (/gabinete|\bcase\b/.test(texto)) return "gabinete";
@@ -128,14 +128,21 @@ const ICONES: Record<Chave, ReactElement> = {
 interface Props {
   categoria: string;
   nome: string;
+  variante?: "icone" | "vitrine";
 }
 
 /** Ilustração vetorial do produto, escolhida pela categoria (sem imagens externas). */
-export function ImagemProduto({ categoria, nome }: Props): ReactElement {
+export function ImagemProduto({ categoria, nome, variante = "icone" }: Props): ReactElement {
   const chave = chaveCategoria(categoria, nome);
 
   return (
-    <div className={`produto__imagem produto__imagem--${chave}`} aria-hidden="true">
+    <div
+      className={`produto__imagem produto__imagem--${chave} ${
+        variante === "vitrine" ? "produto__imagem--vitrine" : ""
+      }`}
+      aria-hidden="true"
+    >
+      <span className="produto__imagem-grade" />
       <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
         {ICONES[chave]}
       </svg>

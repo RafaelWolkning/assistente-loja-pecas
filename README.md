@@ -1,18 +1,16 @@
-# BytePeças — Assistente de Atendimento com IA Generativa
+# BytePeças — Loja de peças de PC com assistente de IA
 
 ![CI](https://github.com/RafaelWolkning/assistente-loja-pecas/actions/workflows/ci.yml/badge.svg?branch=main)
-![Cobertura](https://img.shields.io/badge/cobertura-95%25-brightgreen)
+![Cobertura backend](https://img.shields.io/badge/cobertura%20backend-95%25-brightgreen)
 ![Node](https://img.shields.io/badge/node-%3E%3D22-blue)
-![License](https://img.shields.io/badge/licen%C3%A7a-MIT-lightgrey)
+![Licença](https://img.shields.io/badge/licen%C3%A7a-MIT-lightgrey)
 
-Um sistema de **perguntas e respostas com IA Generativa (Google Gemini)** para
-uma **loja fictícia de peças de computador**. O cliente digita uma pergunta e a
-IA responde no papel do atendente "Byte", usando o catálogo da loja como
-contexto (grounding).
+Loja fictícia de peças de computador com **vitrine de produtos** e um
+**assistente de atendimento com IA (Google Gemini)**. O cliente navega pelo
+catálogo, compara preços entre lojas parceiras e conversa com o **Byte** para
+tirar dúvidas de compatibilidade e montagem.
 
-> Projeto acadêmico. A loja "BytePeças", seus produtos e preços são fictícios.
-
-## Demonstração
+> Projeto acadêmico. Produtos, preços e lojas são fictícios.
 
 | | URL |
 |---|---|
@@ -20,187 +18,137 @@ contexto (grounding).
 | **API (backend)** | https://bytepecas-api.onrender.com |
 | Saúde da API | https://bytepecas-api.onrender.com/saude |
 
-> A API está no plano gratuito do Render e hiberna após ~15 min sem uso. A
-> primeira requisição pode levar ~30–50 s para "acordar"; a interface mostra
-> esse estado automaticamente. Acesse a aplicação uma vez antes de gravar o vídeo.
+> O plano gratuito do Render hiberna após alguns minutos. A primeira requisição
+> pode levar ~30–50 s; a interface avisa quando o servidor está acordando.
 
-## Interface
+## O que a aplicação faz
 
-A interface é uma conversa com o mascote **Byte** — um computadorzinho com
-olhos, em SVG animado por CSS, que **pensa** e **fala** junto com a resposta
-(efeito de digitação, com os parágrafos surgindo separados). As respostas vêm em
-**parágrafos espaçados**, seguidas de **cards de produto** com ilustração e uma
-**tabela de preços por loja** (melhor preço destacado). Há animações de entrada,
-fundo "aurora" animado e suporte a `prefers-reduced-motion`. Detalhes em
-[`ARQUITETURA.md`](./ARQUITETURA.md#11-experiência-do-frontend-para-o-vídeo).
+- **Vitrine de peças** — processadores, placas de vídeo, memórias, SSDs,
+  monitores, periféricos e mais, com busca e filtro por categoria.
+- **Cards com preço e disponibilidade** — ilustrações vetoriais de cada tipo de
+  componente, preço à vista, parcela simulada e aviso de últimas unidades.
+- **Atendimento com IA** — o Byte responde em linguagem natural usando o
+  catálogo e uma base de conhecimento de hardware (RAG).
+- **Comparação de preços** — cada produto sugerido no chat mostra uma tabela
+  `Loja × Preço`, com o melhor preço destacado.
+- **Escopo restrito** — o assistente só responde sobre computadores e
+  tecnologia.
+
+## Stack
+
+| Camada | Tecnologia |
+|---|---|
+| Frontend | React + Vite + TypeScript |
+| Backend | Node.js + Fastify + TypeScript |
+| IA | Google Gemini (`@google/genai`) |
+| Testes | Vitest (backend e frontend) |
+| CI/CD | GitHub Actions |
+| Deploy | Vercel (frontend) + Render (API) |
+
+## Arquitetura em uma frase
+
+O frontend consome uma API HTTP; a API organiza o backend em **camadas** e
+conversa com o Gemini **atrás de uma interface (porta)**, o que permite testar
+tudo com a IA simulada.
+
+```
+frontend (React)  ──HTTP/JSON──▶  backend (Fastify)
+                                     │
+                                     ├── application (casos de uso)
+                                     ├── domain (entidades + portas)
+                                     ├── infrastructure (Gemini, catálogo, RAG)
+                                     └── interfaces/http (rotas)
+                                              │
+                                              ▼
+                                       Google Gemini
+```
+
+### O que cada pasta faz
+
+```
+backend/
+├── src/
+│   ├── domain/          # Entidades (Produto, Mensagem), erros e portas/interfaces
+│   ├── application/     # Casos de uso: listar produtos, perguntar, saúde
+│   ├── infrastructure/  # Adaptadores: Gemini, catálogo, preços, RAG, config
+│   ├── interfaces/http/ # Fastify: rotas, schemas e tratamento de erros
+│   ├── composition.ts   # Monta o grafo de dependências (composition root)
+│   └── server.ts        # Sobe o servidor
+└── test/                # Testes unitários e de integração (IA mockada)
+
+frontend/
+├── src/
+│   ├── api/client.ts    # Cliente HTTP tipado da API
+│   ├── components/      # Vitrine, cards, mascote, chat, ilustrações SVG
+│   ├── utils/           # Formatação de preços em BRL
+│   ├── App.tsx          # Home: catálogo + assistente
+│   ├── main.tsx         # Bootstrap do React
+│   └── styles.css       # Tema visual e responsividade
+├── test/                # Testes dos componentes e do cliente HTTP
+└── index.html           # HTML base
+```
 
 ## Endpoints da API
 
 | Método | Rota | Descrição |
 |---|---|---|
-| `GET` | `/` | Metadados da API e lista de endpoints |
-| `GET` | `/saude` | Saúde/status (usado no health check e no warm-up) |
-| `GET` | `/produtos` | Catálogo de peças da loja (grounding da IA) |
-| `POST` | `/perguntar` | Pergunta ao atendente de IA e recebe a resposta |
-
-Exemplo:
+| `GET` | `/` | Metadados da API |
+| `GET` | `/saude` | Saúde/status |
+| `GET` | `/produtos` | Catálogo de peças |
+| `POST` | `/perguntar` | Pergunta ao assistente de IA |
 
 ```bash
 curl -X POST http://localhost:3000/perguntar \
   -H "Content-Type: application/json" \
   -d '{"pergunta":"Quero um monitor bom para jogar"}'
-# {
-#   "mensagem": "Olá! Para uma experiência de jogo imersiva ...\n\nTemos ...",
-#   "produtos": [
-#     {
-#       "nome": "Monitor Gamer Samsung Odyssey G5 27\" 165Hz QHD",
-#       "categoria": "Monitores",
-#       "descricao": "Curvo 1000R, QHD 1440p, 165Hz ...",
-#       "precoReferencia": 1699,
-#       "origemPreco": "catalogo",
-#       "precos": [
-#         { "loja": "Hardware Prime", "preco": 1632.67 },
-#         { "loja": "BytePeças", "preco": 1669.37 }
-#       ]
-#     }
-#   ]
-# }
 ```
-
-O corpo de `POST /perguntar` aceita `pergunta` (obrigatória, 1–1000 caracteres)
-e `historico` (opcional, até 20 mensagens `{ papel: "cliente"|"atendente",
-conteudo }`) para conversas com contexto.
-
-## Recursos
-
-- **Atendimento estruturado** — a IA devolve, via *JSON Schema*, uma mensagem em
-  parágrafos **mais** a lista de produtos citados (não texto solto). O backend
-  enriquece cada produto com a **comparação de preços** entre as lojas parceiras.
-- **Tabela de preços** — para cada produto, a interface mostra uma tabela
-  `Loja × Preço` e destaca o **melhor preço**. Os valores são **simulados**
-  (projeto acadêmico) e as lojas são fictícias.
-- **Conhecimento amplo de tecnologia** — o atendente não se limita ao catálogo:
-  fala de monitores, periféricos, notebooks, redes etc. Quando o item não está
-  no catálogo, estima um preço e a interface marca como **"Preço estimado pela
-  IA"** (itens do catálogo aparecem como **"Preço de catálogo BytePeças"**).
-- **Cards de produto** — cada produto aparece com uma **ilustração vetorial**
-  (SVG, sem imagens externas), categoria, descrição e a tabela de preços.
-- **RAG (base de conhecimento)** — uma base de hardware (especificações,
-  compatibilidade entre peças, guias) é recuperada por similaridade e fundamenta
-  as respostas técnicas. Funciona com **embeddings** e, se a cota falhar, cai
-  automaticamente para uma **busca lexical** (sem custo de API).
-- **Busca na web (Google Search grounding)** — quando disponível, o atendente
-  consulta a web e a interface mostra as **fontes** consultadas. Se a busca
-  falhar (ex.: cota do tier grátis), a resposta continua usando o RAG.
-- **Escopo restrito** — o atendente só responde sobre **computadores e
-  tecnologia**. Perguntas fora do tema (ex.: peças de carro) recebem uma recusa
-  educada.
-
-## Stack
-
-- **Backend:** Node.js + TypeScript + Fastify, arquitetura em camadas
-  (Ports & Adapters), SDK oficial `@google/genai`.
-- **Frontend:** React + Vite + TypeScript.
-- **Testes:** Vitest + `@vitest/coverage-v8` (IA simulada/mock).
-- **CI/CD:** GitHub Actions.
-- **Deploy:** Render (API) + Vercel (frontend).
-
-## Arquitetura
-
-Resumo das camadas: `domain` (entidades, erros e **portas**) → `application`
-(casos de uso) → `infrastructure` (adaptador Gemini, catálogo, retry, config) →
-`interfaces/http` (Fastify). O **composition root** (`src/composition.ts`) monta
-o grafo. Detalhes completos, com diagrama e o passo a passo de uma pergunta, em
-[`ARQUITETURA.md`](./ARQUITETURA.md).
-
-A IA fica atrás da porta `RespostaGenerator`; o `PerguntarUseCase` não conhece o
-Gemini. É isso que torna a IA **mockável** nos testes.
 
 ## Como rodar localmente
 
-Pré-requisitos: Node.js ≥ 22 e uma chave do Google Gemini
-([AI Studio](https://aistudio.google.com/app/apikey)).
+Pré-requisitos: Node.js ≥ 22 e uma chave do
+[Google AI Studio](https://aistudio.google.com/app/apikey).
 
 ```bash
-# 1) Backend
+# Backend
 cd backend
-cp .env.example .env          # edite e coloque sua GEMINI_API_KEY
+cp .env.example .env      # preencha GEMINI_API_KEY
 npm install
-npm run dev                   # API em http://localhost:3000
+npm run dev               # http://localhost:3000
 
-# 2) Frontend (em outro terminal)
+# Frontend (outro terminal)
 cd frontend
-cp .env.example .env          # VITE_API_URL=http://localhost:3000
+cp .env.example .env      # VITE_API_URL=http://localhost:3000
 npm install
-npm run dev                   # app em http://localhost:5173
+npm run dev               # http://localhost:5173
 ```
 
-### Variáveis de ambiente
-
-Backend (`backend/.env`):
-
-| Variável | Obrigatória | Padrão | Descrição |
-|---|---|---|---|
-| `GEMINI_API_KEY` | sim | — | Chave da API Gemini |
-| `GEMINI_MODEL` | não | `gemini-3.5-flash-lite` | Modelo utilizado |
-| `PORT` | não | `3000` | Porta do servidor |
-| `CORS_ORIGIN` | não | `*` | Origens permitidas (vírgula) |
-| `LOG_LEVEL` | não | `info` | Nível de log do Fastify |
-| `IA_TENTATIVAS` | não | `3` | Tentativas em erros transitórios |
-| `IA_ATRASO_BASE_MS` | não | `800` | Backoff base (cresce exponencialmente) |
-| `USAR_BUSCA_WEB` | não | `true` | Ativa o Google Search grounding (com fallback) |
-| `RAG_HABILITADO` | não | `true` | Ativa a recuperação da base de conhecimento |
-| `RAG_TOP_K` | não | `4` | Quantos trechos de conhecimento injetar |
-| `EMBED_MODEL` | não | `gemini-embedding-001` | Modelo de embeddings do RAG |
-
-Frontend (`frontend/.env`):
-
-| Variável | Descrição |
-|---|---|
-| `VITE_API_URL` | URL base da API (sem barra no final) |
-
-## Testes
+## Testes e CI
 
 ```bash
-cd backend
-npm test              # roda os testes
-npm run test:coverage # testes + cobertura (falha se < 70%)
+# Backend (cobertura mínima de 70%, IA mockada)
+cd backend && npm run test:coverage
+
+# Frontend (componentes da vitrine, cards, cliente HTTP e home)
+cd frontend && npm test
 ```
-
-- Testes **unitários** e de **integração** (via `app.inject`).
-- A chamada à IA é **simulada (mock)** — nenhum teste usa rede ou chave real.
-- Cobertura mínima de **70%** imposta em `vitest.config.ts`; valor atual **~95%**.
-
-## CI/CD
 
 O workflow [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) roda a cada
-push ou pull request para `main`:
+push/PR para `main`:
 
-- **backend:** instala dependências, checa tipos e roda testes com cobertura.
-- **frontend:** instala dependências, checa tipos e builda o bundle.
+1. **backend:** typecheck + testes com cobertura.
+2. **frontend:** testes + typecheck + build.
 
-O **badge de CI** no topo desta página fica verde quando o pipeline passa.
+## Segurança
 
-## Segurança — chaves de API
+- Nenhuma chave é versionada: `.env` fica no `.gitignore` e o repositório traz
+  apenas `.env.example`.
+- Em produção, a chave vive nas variáveis de ambiente do Render.
+- O CI usa uma chave fictícia porque a IA é simulada nos testes.
 
-- **Nenhuma chave é versionada.** `.env` está no `.gitignore` e o repositório
-  traz apenas `.env.example` com placeholders.
-- Em produção, a chave vive em **variáveis de ambiente** da plataforma
-  (`GEMINI_API_KEY` no painel do Render, marcada como secreta no `render.yaml`).
-- O CI usa uma chave fictícia, pois a IA é mockada.
+## Documentação extra
 
-## Deploy
-
-- **API (Render):** o arquivo [`render.yaml`](./render.yaml) descreve o Web
-  Service (Blueprint). Configure `GEMINI_API_KEY` e `CORS_ORIGIN` no painel.
-- **Frontend (Vercel):** importe o repositório, aponte o *root directory* para
-  `frontend` e defina `VITE_API_URL` com a URL pública da API.
-
-## Documentação
-
-- [`ARQUITETURA.md`](./ARQUITETURA.md) — arquitetura e passo a passo (para o vídeo).
-- [`DECISOES.md`](./DECISOES.md) — por que esta stack e o que foi aprendido.
-- [`docs/intent/`](./docs/intent) — intenção confirmada do projeto.
+- [`ARQUITETURA.md`](./ARQUITETURA.md) — detalhes das camadas e passo a passo.
+- [`DECISOES.md`](./DECISOES.md) — justificativa das escolhas técnicas.
 
 ## Licença
 
