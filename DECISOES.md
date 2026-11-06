@@ -1,17 +1,15 @@
-# Decisões 
+Escolhi utilizar TypeScript tanto no frontend quanto no backend por facilitar a comunicação entre as duas partes e ajudar a evitar erros. Também já tenho experiência com .NET, Angular e TypeScript por atuar como Arquiteto .NET, então pude aproveitar conhecimentos que já utilizo no meu trabalho.
 
-Escolhi utilizar TypeScript no frontend e no backend porque facilita a comunicação entre as duas partes do sistema e ajuda a evitar erros, já que permite definir os tipos de dados utilizados. Para o backend, optei pelo Fastify por ser simples, rápido e oferecer validação de dados nas rotas.
+Para o backend, escolhi o Fastify por ser simples e rápido. Também organizei o projeto em camadas para facilitar a manutenção e permitir futuras mudanças, como trocar o serviço de IA sem precisar alterar grande parte do sistema.
 
-Também organizei o projeto em camadas, separando as regras de negócio da integração com o Gemini. Fiz isso para facilitar a manutenção e permitir trocar o serviço de IA no futuro sem precisar modificar grande parte do código. Essa organização também ajudou nos testes, pois consegui simular as respostas da IA sem depender de chamadas reais à API.
+Para hospedar o projeto, utilizei o Vercel no frontend e o Render no backend, principalmente pela facilidade de configuração e pelas opções gratuitas.
 
-Para a hospedagem, escolhi o Vercel para o frontend e o Render para o backend, pois são plataformas que atendem bem às necessidades do projeto e possuem opções gratuitas.
+Na integração com o Gemini, utilizei respostas em JSON para facilitar a leitura e comparação dos produtos. Também implementei RAG para melhorar as respostas com informações sobre hardware e compatibilidade.
 
-Na integração com a IA, utilizei respostas estruturadas em JSON para facilitar a leitura dos produtos e a montagem das tabelas de comparação. Também implementei um sistema de RAG para melhorar as respostas com informações sobre hardware, compatibilidade e especificações técnicas. Além disso, utilizei uma busca alternativa por palavras-chave caso a busca vetorial falhe.
+Optei por utilizar lojas fictícias e preços simulados para não apresentar valores inventados como se fossem reais. Quando não encontra um produto, o sistema pode apresentar uma estimativa, deixando isso claro para o usuário.
 
-Uma decisão importante foi utilizar lojas fictícias e preços simulados, evitando apresentar valores inventados como se fossem preços reais. Quando um produto não está cadastrado, a IA pode fornecer uma estimativa, deixando isso claro para o usuário.
+Durante o desenvolvimento, aprendi mais sobre Fastify, testes automatizados, integração com inteligência artificial e tratamento de erros. Também precisei lidar com limites de requisições da API do Gemini, criando alternativas para evitar que o sistema pare de funcionar.
 
-Durante o desenvolvimento, aprendi bastante sobre TypeScript, Fastify, organização de código, injeção de dependência, testes automatizados e integração com APIs de inteligência artificial. Também tive que lidar com problemas de limite de requisições do Gemini, erros 429 e 503, o que me ensinou a criar alternativas para que o sistema continue funcionando mesmo quando um serviço externo apresenta falhas.
+Por fim, utilizei variáveis de ambiente para proteger as chaves de API e evitar que informações sensíveis fossem expostas no código.
 
-Por fim, aprendi a importância de proteger informações sensíveis, utilizando variáveis de ambiente para armazenar as chaves de API, sem expô-las no código ou no GitHub.
-
-De forma geral, o projeto me ajudou a entender melhor como desenvolver uma aplicação completa, desde a escolha das tecnologias até a hospedagem e os cuidados necessários para mantê-la funcionando.
+No geral, o projeto foi uma oportunidade de colocar em prática minha experiência profissional, conhecer melhor algumas tecnologias e desenvolver uma aplicação completa, desde o código até a hospedagem.
